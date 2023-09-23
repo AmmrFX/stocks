@@ -24,7 +24,7 @@ func init() {
 
 	pushoverAPIKey = os.Getenv("PUSHOVER_API_KEY")
 	pushoverUserKey = os.Getenv("PUSHOVER_USER_KEY")
-	HostURL = os.Getenv("HOST_URL")
+	HostURL = os.Getenv("HOST_URL")	
 	STOCKS_URL = os.Getenv("STOCK")
 	COMPANY = os.Getenv("Mobco")
 	STOCKS_URL += COMPANY
