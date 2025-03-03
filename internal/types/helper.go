@@ -4,56 +4,53 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // ------------------------------------------------------------------------------------------------------------------------------------
 
-func parseChangePercentage(percentage string) (float64, error) {
+func (c *Company) Manipulator(lastPercent float64, company string) (string, float64) {
+	var message string
+	initialCredit := 983.7
+	noOfStocks := 3
+	stockPrice := c.CompanyTab.PriceBar
+
+	todayPercentage, err := parseTodayPercentage(stockPrice.ChangePercentage)
+	if err != nil {
+		fmt.Println("Invalid change percentage format:", err)
+		return "", 0
+	}
+
+	profit := c.calculateProfit(float64(noOfStocks), initialCredit)
+	InvestmentValue := profit + initialCredit
+
+	if todayPercentage >= 0.5 {
+		if todayPercentage-lastPercent > 0.5 {
+			message = fmt.Sprintf(" Profit from stock "+company+": Total Change percentage is %.2f%% %s, Total Investment %f, profit %f value %s", todayPercentage, stockPrice.Status, InvestmentValue, profit, stockPrice.Value)
+			return message, lastPercent
+		}
+	}
+
+	if todayPercentage < -0.5 {
+		message = fmt.Sprintf("Loss "+company+": Total Change percentage is %.2f%% %s, Total Investment %f,  profit %f value %s", todayPercentage, stockPrice.Status, InvestmentValue, profit, stockPrice.Value)
+		return message, lastPercent
+	}
+
+	return "", 0
+}
+
+// ------------------------------------------------------------------------------------------------------------------------------------
+
+func parseTodayPercentage(percentage string) (float64, error) {
 	percentage = strings.TrimSuffix(percentage, "%")
 	return strconv.ParseFloat(percentage, 64)
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------
 
-func (comp *Company) Manipulator(lastPercent float64,company string) (string, float64) {
-	initialCredit := 983.7
-	nowPrice := comp.CompanyTab.PriceBar
-	changePercentage, err := parseChangePercentage(nowPrice.ChangePercentage)
-
-	if err != nil {
-		fmt.Println("Invalid change percentage format:", err)
-		return "", 0
-	}
-
-	nowPricefloat, _ := strconv.ParseFloat(nowPrice.Value, 64)
-	profit := nowPricefloat*3 - initialCredit
-	message := ""
-	if changePercentage > 0.5 {
-		for {
-			InvestmentValue := profit + initialCredit
-
-			if changePercentage-lastPercent > 0.5 {
-				fmt.Printf("Chaannnge "+company+": Change percentage is %.2f%% %s, Total Investment %f", changePercentage, nowPrice.Status, InvestmentValue)
-				message = fmt.Sprintf(" Chaannnge "+company+": Total Change percentage is %.2f%% %s, Total Investment %f", changePercentage, nowPrice.Status, InvestmentValue)
-				message += fmt.Sprintf(" profit %f value %s", profit, nowPrice.Value)
-				return message, lastPercent
-			}
-			fmt.Printf(""+company+": Total Change percentage is %.2f%% %s, Total Investment %f", changePercentage, nowPrice.Status, InvestmentValue)
-			time.Sleep(5 * time.Minute)
-
-		}
-	}
-	InvestmentValue := profit + initialCredit
-
-	if changePercentage < -0.5 {
-		message, lastPercent := belowPercentage()
-	
-		return message, lastPercent
-	} else {
-		fmt.Printf("Not sending notification:Loss "+company+": Total Change percentage is %.2f%% %s, Total Investment %f", changePercentage, nowPrice.Status, InvestmentValue)
-	}
-	return "", 0
+func (c *Company) calculateProfit(noOfStocks, initialCredit float64) float64 {
+	stockPrice, _ := strconv.ParseFloat(c.CompanyTab.PriceBar.Value, 64)
+	profit := (noOfStocks * stockPrice) - initialCredit
+	return profit
 }
 
-func belowPercentage()()
+// ------------------------------------------------------------------------------------------------------------------------------------
