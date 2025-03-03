@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"time"
-
 	"github.com/gregdel/pushover"
 	"github.com/joho/godotenv"
 )
@@ -41,14 +40,28 @@ func main() {
 		} else {
 			if message != "" {
 				pushover2(message)
-
 			}
 		}
-
 		time.Sleep(5 * time.Minute)
 	}
 }
 
+
+
+func pushover2(message1 string) error {
+	app := pushover.New(pushoverAPIKey)
+	recipient := pushover.NewRecipient(pushoverUserKey)
+
+	message := &pushover.Message{
+		Message: message1,
+	}
+
+	_, err := app.SendMessage(message, recipient)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 // stocks := []string{"abou-kir-fertilizers"}
 // scrapeURL := "https://sa.investing.com/equities/"
 
@@ -86,18 +99,3 @@ func main() {
 // 		fmt.Println("Error:", err)
 // 	}
 // }
-
-func pushover2(message1 string) error {
-	app := pushover.New(pushoverAPIKey)
-	recipient := pushover.NewRecipient(pushoverUserKey)
-
-	message := &pushover.Message{
-		Message: message1,
-	}
-
-	_, err := app.SendMessage(message, recipient)
-	if err != nil {
-		return err
-	}
-	return nil
-}

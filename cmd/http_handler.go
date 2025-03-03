@@ -17,7 +17,6 @@ func StockHandler(HostURL, stock_url, company string, lastPercent float64) (stri
 	decoder := json.NewDecoder(resp.Body)
 	if err := decoder.Decode(&companyStock); err != nil {
 		return "", 0, err
-
 	}
 
 	defer resp.Body.Close()

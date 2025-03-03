@@ -47,14 +47,13 @@ func (comp *Company) Manipulator(lastPercent float64,company string) (string, fl
 	InvestmentValue := profit + initialCredit
 
 	if changePercentage < -0.5 {
-
-		fmt.Printf("Sending notification: Change percentage is %.2f%% %s\n", changePercentage, nowPrice.Status)
-		message = fmt.Sprintf("Loss "+company+": Total Change percentage is %.2f%% %s, Total Investment %f", changePercentage, nowPrice.Status, InvestmentValue)
-		message += fmt.Sprintf(" profit %f value %s", profit, nowPrice.Value)
-
+		message, lastPercent := belowPercentage()
+	
 		return message, lastPercent
 	} else {
 		fmt.Printf("Not sending notification:Loss "+company+": Total Change percentage is %.2f%% %s, Total Investment %f", changePercentage, nowPrice.Status, InvestmentValue)
 	}
 	return "", 0
 }
+
+func belowPercentage()()
