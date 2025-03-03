@@ -15,6 +15,22 @@ type App struct {
 	AbuQuir             string
 }
 
+type Broker struct {
+	name     string
+	age      string
+	gender   string
+	userName string
+	email    string
+	password string
+	Account  Account
+}
+
+type Account struct {
+	initialCredit float64
+	Companies     []CompanyTab
+	Stocks        map[CompanyTab]int
+}
+
 type Company struct {
 	CompanyTab CompanyTab `json:"companyTab"`
 }
