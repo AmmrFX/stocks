@@ -1,9 +1,11 @@
 package main
 
 import (
+	"finance/datastore"
 	"fmt"
+	"log"
 	"os"
-	"time"
+
 	"github.com/gregdel/pushover"
 	"github.com/joho/godotenv"
 )
@@ -20,33 +22,61 @@ func init() {
 	if err := godotenv.Load(); err != nil {
 		fmt.Println(err)
 	}
-
+	log.Println("Using credentials file:", os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
 	pushoverAPIKey = os.Getenv("PUSHOVER_API_KEY")
 	pushoverUserKey = os.Getenv("PUSHOVER_USER_KEY")
-	HostURL = os.Getenv("HOST_URL")	
+	HostURL = os.Getenv("HOST_URL")
 	STOCKS_URL = os.Getenv("STOCK")
 	COMPANY = os.Getenv("Mobco")
 	STOCKS_URL += COMPANY
 }
 
+// func main() {
+// 	var lastPercent float64
+// 	for {
+// 		message, lastperc, err := StockHandler(HostURL, STOCKS_URL, COMPANY, lastPercent)
+// 		lastPercent = lastperc
+// 		if err != nil {
+// 			fmt.Println("Error:", err)
+// 			// Handle the error as needed
+// 		} else {
+// 			if message != "" {
+// 				pushover2(message)
+// 			}
+// 		}
+// 		time.Sleep(5 * time.Minute)
+// 	}
+// }
+
 func main() {
-	var lastPercent float64
-	for {
-		message, lastperc, err := StockHandler(HostURL, STOCKS_URL, COMPANY, lastPercent)
-		lastPercent = lastperc
-		if err != nil {
-			fmt.Println("Error:", err)
-			// Handle the error as needed
-		} else {
-			if message != "" {
-				pushover2(message)
-			}
-		}
-		time.Sleep(5 * time.Minute)
+	datastore.InitDatastoreClient() // Make sure to initialize DSClient
+
+	broker := &datastore.Broker{
+		Name:     "John Doe",
+		Age:      "35",
+		Gender:   "Male",
+		UserName: "john_doe",
+		Email:    "johndoe@example.com",
+		Password: "securepassword",
+		Account: datastore.Account{
+			InitialCredit: 10000.50,
+			Companies: []datastore.CompanyDetails{
+				{Title: "Apple", Market: "NASDAQ", Stock: "AAPL", Index: 1, Value: 150.75},
+				{Title: "Tesla", Market: "NASDAQ", Stock: "TSLA", Index: 2, Value: 800.30},
+			},
+
+			Stocks: []datastore.StockEntry{
+				{Stock: "MSFT", Count: 15},
+				{Stock: "AMZN", Count: 5},
+			},
+		},
+	}
+
+	err := datastore.InsertBroker(broker)
+	if err != nil {
+		log.Fatalf("Error inserting broker: %v", err)
 	}
 }
-
-
 
 func pushover2(message1 string) error {
 	app := pushover.New(pushoverAPIKey)
@@ -62,6 +92,7 @@ func pushover2(message1 string) error {
 	}
 	return nil
 }
+
 // stocks := []string{"abou-kir-fertilizers"}
 // scrapeURL := "https://sa.investing.com/equities/"
 

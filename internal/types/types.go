@@ -19,7 +19,7 @@ type Broker struct {
 	name     string
 	age      string
 	gender   string
-	userName string
+	userName string	
 	email    string
 	password string
 	Account  Account
@@ -33,6 +33,13 @@ type Account struct {
 
 type Company struct {
 	CompanyTab CompanyTab `json:"companyTab"`
+}
+type CompanyDetails struct {
+	Title    string   `json:"title"`
+	Market   string   `json:"market"`
+	Stock    string   `json:"stock"`
+	Index    int      `json:"index"`
+	PriceBar PriceBar `json:"priceBar"`
 }
 
 type CompanyTab struct {
