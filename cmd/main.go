@@ -2,10 +2,12 @@ package main
 
 import (
 	"finance/datastore"
+	"finance/handlers"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gregdel/pushover"
 	"github.com/joho/godotenv"
 )
@@ -22,13 +24,28 @@ func init() {
 	if err := godotenv.Load(); err != nil {
 		fmt.Println(err)
 	}
-	log.Println("Using credentials file:", os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+	os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 	pushoverAPIKey = os.Getenv("PUSHOVER_API_KEY")
 	pushoverUserKey = os.Getenv("PUSHOVER_USER_KEY")
 	HostURL = os.Getenv("HOST_URL")
 	STOCKS_URL = os.Getenv("STOCK")
 	COMPANY = os.Getenv("Mobco")
 	STOCKS_URL += COMPANY
+}
+
+func main() {
+	datastore.InitDatastoreClient()
+
+	// Setup Gin Router
+	r := gin.Default()
+
+	// Define API Routes
+	r.POST("/broker", handlers.InsertBroker)
+	r.GET("/broker/:id", handlers.GetBroker)
+
+	// Start Server
+	log.Println("Server running on port 8080...")
+	r.Run(":8080")
 }
 
 // func main() {
@@ -48,35 +65,35 @@ func init() {
 // 	}
 // }
 
-func main() {
-	datastore.InitDatastoreClient() // Make sure to initialize DSClient
+// func main() {
+// 	datastore.InitDatastoreClient() // Make sure to initialize DSClient
 
-	broker := &datastore.Broker{
-		Name:     "John Doe",
-		Age:      "35",
-		Gender:   "Male",
-		UserName: "john_doe",
-		Email:    "johndoe@example.com",
-		Password: "securepassword",
-		Account: datastore.Account{
-			InitialCredit: 10000.50,
-			Companies: []datastore.CompanyDetails{
-				{Title: "Apple", Market: "NASDAQ", Stock: "AAPL", Index: 1, Value: 150.75},
-				{Title: "Tesla", Market: "NASDAQ", Stock: "TSLA", Index: 2, Value: 800.30},
-			},
+// 	broker := &datastore.Broker{
+// 		Name:     "John Doe",
+// 		Age:      "35",
+// 		Gender:   "Male",
+// 		UserName: "john_doe",
+// 		Email:    "johndoe@example.com",
+// 		Password: "securepassword",
+// 		Account: datastore.Account{
+// 			InitialCredit: 10000.50,
+// 			Companies: []datastore.CompanyDetails{
+// 				{Title: "Apple", Market: "NASDAQ", Stock: "AAPL", Index: 1, Value: 150.75},
+// 				{Title: "Tesla", Market: "NASDAQ", Stock: "TSLA", Index: 2, Value: 800.30},
+// 			},
 
-			Stocks: []datastore.StockEntry{
-				{Stock: "MSFT", Count: 15},
-				{Stock: "AMZN", Count: 5},
-			},
-		},
-	}
+// 			Stocks: []datastore.StockEntry{
+// 				{Stock: "MSFT", Count: 15},
+// 				{Stock: "AMZN", Count: 5},
+// 			},
+// 		},
+// 	}
 
-	err := datastore.InsertBroker(broker)
-	if err != nil {
-		log.Fatalf("Error inserting broker: %v", err)
-	}
-}
+// 	err := datastore.InsertBroker(broker)
+// 	if err != nil {
+// 		log.Fatalf("Error inserting broker: %v", err)
+// 	}
+// }
 
 func pushover2(message1 string) error {
 	app := pushover.New(pushoverAPIKey)

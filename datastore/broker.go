@@ -1,12 +1,5 @@
 package datastore
 
-import (
-	"context"
-	"log"
-
-	"cloud.google.com/go/datastore"
-)
-
 type Account struct {
 	InitialCredit float64          `datastore:"initialCredit"`
 	Companies     []CompanyDetails `datastore:"companies"`
@@ -37,32 +30,31 @@ type StockEntry struct {
 	Count int    `datastore:"count"`
 }
 
-// GetBroker retrieves a broker by ID
-func GetBroker(id string) (*Broker, error) {
-	ctx := context.Background()
-	key := datastore.NameKey("Broker", id, nil)
+// // GetBroker retrieves a broker by ID
+// func GetBroker(id string) (*Broker, error) {
+// 	ctx := context.Background()
+// 	key := datastore.NameKey("Broker", id, nil)
 
-	var broker Broker
-	err := DSClient.Get(ctx, key, &broker)
-	if err != nil {
-		return nil, err
-	}
+// 	var broker Broker
+// 	err := DSClient.Get(ctx, key, &broker)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return &broker, nil
-}
+// 	return &broker, nil
+// }
 
-func InsertBroker(broker *Broker) error {
-	context := context.Background()
-	key := datastore.NameKey("Broker", broker.UserName, nil)
+// func InsertBroker(broker *Broker) error {
+// 	context := context.Background()
+// 	key := datastore.NameKey("Broker", broker.UserName, nil)
 
+// 	_, err := DSClient.Put(context, key, broker)
+// 	if err != nil {
+// 		log.Printf("Failed to insert broker: %v", err)
+// 		return err
+// 	}
 
-	_, err := DSClient.Put(context, key, broker)
-	if err != nil {
-		log.Printf("Failed to insert broker: %v", err)
-		return err
-	}
+// 	log.Println("Broker inserted successfully!")
+// 	return nil
 
-	log.Println("Broker inserted successfully!")
-	return nil
-
-}
+// }
