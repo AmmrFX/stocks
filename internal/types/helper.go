@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -54,3 +55,9 @@ func (c *Company) calculateProfit(noOfStocks, initialCredit float64) float64 {
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------
+func ExecuteTrade(order Order) {
+	log.Printf("Executing %s order for %d shares of %s at $%.2f",
+		order.OrderType, order.Quantity, order.Stock, order.Price)
+
+	// TODO: Add database operations (update stock positions, send notification, etc.)
+}

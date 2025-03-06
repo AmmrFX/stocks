@@ -19,7 +19,7 @@ type Broker struct {
 	name     string
 	age      string
 	gender   string
-	userName string	
+	userName string
 	email    string
 	password string
 	Account  Account
@@ -65,4 +65,13 @@ type PriceBar struct {
 	Status           string `json:"status"`
 	UpdatedAt        string `json:"updatedAt"`
 	Currency         string `json:"currency"`
+}
+
+type Order struct {
+	OrderID   string  `json:"order_id"`
+	UserID    string  `json:"user_id"`
+	Stock     string  `json:"stock"`
+	Quantity  int     `json:"quantity"`
+	Price     float64 `json:"price"`
+	OrderType string  `json:"order_type"` // "BUY" or "SELL"
 }

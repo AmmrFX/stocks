@@ -1,4 +1,12 @@
-package datastore
+package datastore_repo
+
+import (
+	"context"
+	"finance/internal/types"
+	"log"
+
+	"cloud.google.com/go/datastore"
+)
 
 type Account struct {
 	InitialCredit float64          `datastore:"initialCredit"`
@@ -28,6 +36,31 @@ type Broker struct {
 type StockEntry struct {
 	Stock string `datastore:"stock"`
 	Count int    `datastore:"count"`
+}
+
+// ------------------------------------------------------------------------------------------------------------------------------------
+
+func GetBroker(id string) (*Broker, error) {
+	ctx := context.Background()
+	key := datastore.NameKey("Broker", id, nil)
+
+	err := DSClient.Get(ctx, key, &Broker{})
+	if err != nil {
+		log.Printf("Using Datastore Key: %+v", key) // Log key structure
+		return nil, err
+	}
+	return &Broker{}, nil
+}
+
+// ------------------------------------------------------------------------------------------------------------------------------------
+func InsertBroker(broker *types.Broker) error {
+	ctx := context.Background()
+	key := datastore.IncompleteKey("Broker", nil)
+	_, err := DSClient.Put(ctx, key, &broker)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // // GetBroker retrieves a broker by ID

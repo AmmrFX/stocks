@@ -1,7 +1,7 @@
 package main
 
 import (
-	"finance/datastore"
+	datastore_repo "finance/datastore"
 	"finance/handlers"
 	"fmt"
 	"log"
@@ -34,7 +34,7 @@ func init() {
 }
 
 func main() {
-	datastore.InitDatastoreClient()
+	datastore_repo.InitDatastoreClient()
 
 	// Setup Gin Router
 	r := gin.Default()
@@ -42,7 +42,7 @@ func main() {
 	// Define API Routes
 	r.POST("/broker", handlers.InsertBroker)
 	r.GET("/broker/:id", handlers.GetBroker)
-
+	r.POST("/order/excute_order", handlers.ExcuteOrder)
 	// Start Server
 	log.Println("Server running on port 8080...")
 	r.Run(":8080")
