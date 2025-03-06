@@ -2,40 +2,60 @@ package datastore_repo
 
 import (
 	"context"
-	"finance/internal/types"
 	"log"
 
 	"cloud.google.com/go/datastore"
 )
 
+// Account struct
 type Account struct {
-	InitialCredit float64          `datastore:"initialCredit"`
+	InitialCredit float64          `datastore:"initialCredit,noindex"` // No need to index balances
 	Companies     []CompanyDetails `datastore:"companies"`
-	Stocks        []StockEntry     `datastore:"stocks"` // ✅ Use slice instead of map
+	Stocks        []Stock          `datastore:"stocks"`
 }
 
-// CompanyDetails struct (Fixed)
+// CompanyDetails struct
 type CompanyDetails struct {
 	Title  string  `datastore:"title"`
 	Market string  `datastore:"market"`
 	Stock  string  `datastore:"stock"`
-	Index  int     `datastore:"index"`
-	Value  float64 `datastore:"priceBar"` // Fixed: "value" is now "Value"
+	Index  int64   `datastore:"index"`
+	Value  float64 `datastore:"value,noindex"` // No need to index price values
 }
 
 // Broker struct
 type Broker struct {
-	Name     string  `datastore:"name"`
-	Age      string  `datastore:"age"`
-	Gender   string  `datastore:"gender"`
-	UserName string  `datastore:"userName"`
-	Email    string  `datastore:"email"`
-	Password string  `datastore:"password"`
-	Account  Account `datastore:"account"`
+	ID       *datastore.Key `datastore:"__key__"` // Primary key (Datastore auto-generates)
+	Name     string         `datastore:"name"`
+	Age      int64          `datastore:"age"`
+	Gender   string         `datastore:"gender"`
+	UserName string         `datastore:"userName"`
+	Email    string         `datastore:"email"`
+	Password string         `datastore:"password,noindex"` // Do not index sensitive data
+	Account  Account        `datastore:"account"`
 }
+
+// Stock struct
+type Stock struct {
+	ID          int64   `datastore:"id"`
+	Symbol      string  `datastore:"symbol"`
+	CompanyName string  `datastore:"company_name"`
+	LatestPrice float64 `datastore:"latest_price,noindex"`
+}
+
+// Holding struct
+type Holding struct {
+	ID       *datastore.Key `datastore:"__key__"` // Auto-generated key
+	BrokerID int64          `datastore:"broker_id"`
+	StockID  int64          `datastore:"stock_id"`
+	Quantity int64          `datastore:"quantity"`
+	AvgPrice float64        `datastore:"avg_price,noindex"`
+}
+
+// StockEntry struct
 type StockEntry struct {
 	Stock string `datastore:"stock"`
-	Count int    `datastore:"count"`
+	Count int64  `datastore:"count"`
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------
@@ -53,15 +73,20 @@ func GetBroker(id string) (*Broker, error) {
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------
-func InsertBroker(broker *types.Broker) error {
+func InsertBroker(broker *Broker) error {
 	ctx := context.Background()
 	key := datastore.IncompleteKey("Broker", nil)
-	_, err := DSClient.Put(ctx, key, &broker)
+	_, err := DSClient.Put(ctx, key, broker)
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
+// ------------------------------------------------------------------------------------------------------------------------------------
+// func GetBrokerFinance(id int) (*Holding, error) {
+// 	ctx := context
+// }
 
 // // GetBroker retrieves a broker by ID
 // func GetBroker(id string) (*Broker, error) {

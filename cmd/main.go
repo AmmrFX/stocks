@@ -43,6 +43,9 @@ func main() {
 	r.POST("/broker", handlers.InsertBroker)
 	r.GET("/broker/:id", handlers.GetBroker)
 	r.POST("/order/excute_order", handlers.ExcuteOrder)
+	//r.GET("/broker/:id/dashboard",handlers.BrokerFinance)
+	// r.GET("/broker/:id/transactions",handlers.BrokerTransactoins)
+	// r.GET("/broker/:id/orders",handlers.BrokerOrders)
 	// Start Server
 	log.Println("Server running on port 8080...")
 	r.Run(":8080")

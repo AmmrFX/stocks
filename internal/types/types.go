@@ -15,31 +15,54 @@ type App struct {
 	AbuQuir             string
 }
 
-type Broker struct {
-	name     string
-	age      string
-	gender   string
-	userName string
-	email    string
-	password string
-	Account  Account
-}
-
 type Account struct {
-	initialCredit float64
-	Companies     []CompanyTab
-	Stocks        map[CompanyTab]int
+	InitialCredit float64          `json:"initial_credit"`
+	Companies     []CompanyDetails `json:"companies"`
+	Stocks        []Stock          `json:"stocks"` // ✅ Plural for consistency
 }
 
+// CompanyDetails struct
+type CompanyDetails struct {
+	Title  string  `json:"title"`
+	Market string  `json:"market"`
+	Stock  string  `json:"stock"`
+	Index  int64     `json:"index"`
+	Value  float64 `json:"value"`
+}
+
+// Broker struct
+type Broker struct {
+	Name     string  `json:"name"`
+	Age      int64     `json:"age"` // ✅ Changed to int for correct data type
+	Gender   string  `json:"gender"`
+	UserName string  `json:"user_name"`
+	Email    string  `json:"email"`
+	Password string  `json:"password"`
+	Account  Account `json:"account"`
+}
+
+// Stock struct
+type Stock struct {
+	ID          int64   `json:"id"`
+	Symbol      string  `json:"symbol"`
+	CompanyName string  `json:"company_name"`
+	LatestPrice float64 `json:"latest_price"`
+}
+
+// Holding struct
+type Holding struct {
+	ID       int64   `json:"id"`
+	BrokerID int64   `json:"broker_id"`
+	StockID  int64   `json:"stock_id"`
+	Quantity int     `json:"quantity"`
+	AvgPrice float64 `json:"avg_price"`
+}
+
+
+// ------------------------------------------------------------------------------------------------------------------------------------
+// for the api 
 type Company struct {
 	CompanyTab CompanyTab `json:"companyTab"`
-}
-type CompanyDetails struct {
-	Title    string   `json:"title"`
-	Market   string   `json:"market"`
-	Stock    string   `json:"stock"`
-	Index    int      `json:"index"`
-	PriceBar PriceBar `json:"priceBar"`
 }
 
 type CompanyTab struct {
