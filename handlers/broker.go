@@ -3,7 +3,9 @@ package handlers
 import (
 	ds "finance/datastore"
 	"finance/internal/types"
+	"fmt"
 	"log"
+	"strconv"
 
 	"net/http"
 
@@ -52,7 +54,12 @@ func GetBroker(c *gin.Context) {
 		return
 	}
 
-	broker, err := ds.GetBroker(id)
+	brokerID, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid broker ID"})
+		return
+	}
+	broker, err := ds.GetBroker(brokerID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Broker not found"})
 	}
@@ -60,19 +67,66 @@ func GetBroker(c *gin.Context) {
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------
-// func BrokerFinance(c *gin.Context) {
-// 	id := c.Param("id")
-// 	log.Printf("Fetching Broker with ID: %s", id) // Log broker ID
-// 	if id == "" {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID is required"})
-// 		return
-// 	}
-// 	finance, err := ds.GetBrokerFinance(id)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func GetBrokerHolding(c *gin.Context) {
+	id := c.Param("id")
+	log.Printf("Fetching Broker with ID: %s", id) // Log broker ID
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID is required"})
+		return
+	}
 
-// }
+	brokerID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid broker ID"})
+		return
+	}
+
+	_, err = ds.GetBroker(brokerID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Broker not found"})
+	}
+
+	holding, err := ds.GetBrokerHoldings(brokerID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Broker not found"})
+		return
+	}
+	c.JSON(http.StatusOK, holding)
+}
+
+// ------------------------------------------------------------------------------------------------------------------------------------
+func InsertHolding(c *gin.Context) {
+	var holding types.Holding
+	if err := c.ShouldBindJSON(&holding); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	brokerID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid broker ID"})
+		return
+	}
+
+	if brocker, err := ds.GetBroker(brokerID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("broker id is invalid: %v, valid one is %v", err, brocker.ID)})
+		return
+	}
+	dsholding := ds.Holding{
+		BrokerID:    brokerID,
+		StockID:     holding.StockID,
+		Quantity:    holding.Quantity,
+		AvgPrice:    holding.AvgPrice,
+		BuyingPrice: holding.BuyingPrice,
+	}
+
+	if err := ds.InsertBrokerHolding(&dsholding); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to insert broker holding: %v", err)})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"error": "broker holding inserted successfully!"})
+}
+
 // ------------------------------------------------------------------------------------------------------------------------------------
 func mapCompanies(companies []types.CompanyDetails) []ds.CompanyDetails {
 	var dsCompanies []ds.CompanyDetails
@@ -87,6 +141,8 @@ func mapCompanies(companies []types.CompanyDetails) []ds.CompanyDetails {
 	}
 	return dsCompanies
 }
+
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 // Helper function to map Stocks
 func mapStocks(stocks []types.Stock) []ds.Stock {

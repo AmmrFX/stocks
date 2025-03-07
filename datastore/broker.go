@@ -45,11 +45,12 @@ type Stock struct {
 
 // Holding struct
 type Holding struct {
-	ID       *datastore.Key `datastore:"__key__"` // Auto-generated key
-	BrokerID int64          `datastore:"broker_id"`
-	StockID  int64          `datastore:"stock_id"`
-	Quantity int64          `datastore:"quantity"`
-	AvgPrice float64        `datastore:"avg_price,noindex"`
+	ID          *datastore.Key `datastore:"__key__"` // Auto-generated key
+	BrokerID    int64          `datastore:"broker_id"`
+	StockID     int64          `datastore:"stock_id"`
+	Quantity    int64          `datastore:"quantity"`
+	AvgPrice    float64        `datastore:"avg_price,noindex"`
+	BuyingPrice float64        `datastore:"BuyingPrice"`
 }
 
 // StockEntry struct
@@ -60,9 +61,9 @@ type StockEntry struct {
 
 // ------------------------------------------------------------------------------------------------------------------------------------
 
-func GetBroker(id string) (*Broker, error) {
+func GetBroker(id int64) (*Broker, error) {
 	ctx := context.Background()
-	key := datastore.NameKey("Broker", id, nil)
+	key := datastore.IDKey("Broker", id, nil)
 
 	err := DSClient.Get(ctx, key, &Broker{})
 	if err != nil {
@@ -84,11 +85,31 @@ func InsertBroker(broker *Broker) error {
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------
-// func GetBrokerFinance(id int) (*Holding, error) {
-// 	ctx := context
-// }
+func GetBrokerHoldings(id int64) (*[]Holding, error) {
+	var holdings []Holding
+	ctx := context.Background()
+	query := datastore.NewQuery("Holding").FilterField("broker_id", "=", id)
+	_, err := DSClient.GetAll(ctx, query, &holdings)
+	if err != nil {
+		log.Printf("Failed to fetch stocks for broker: %v", err)
+		return nil, err
+	}
 
-// // GetBroker retrieves a broker by ID
+	return &holdings, nil
+}
+
+// ------------------------------------------------------------------------------------------------------------------------------------
+func InsertBrokerHolding(holding *Holding) error {
+	ctx := context.Background()
+	key := datastore.IncompleteKey("Holding", nil)
+	_, err := DSClient.Put(ctx, key, holding)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetBroker retrieves a broker by ID
 // func GetBroker(id string) (*Broker, error) {
 // 	ctx := context.Background()
 // 	key := datastore.NameKey("Broker", id, nil)
@@ -98,6 +119,8 @@ func InsertBroker(broker *Broker) error {
 // 	if err != nil {
 // 		return nil, err
 // 	}
+// }
+// ------------------------------------------------------------------------------------------------------------------------------------
 
 // 	return &broker, nil
 // }

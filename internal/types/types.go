@@ -26,14 +26,14 @@ type CompanyDetails struct {
 	Title  string  `json:"title"`
 	Market string  `json:"market"`
 	Stock  string  `json:"stock"`
-	Index  int64     `json:"index"`
+	Index  int64   `json:"index"`
 	Value  float64 `json:"value"`
 }
 
 // Broker struct
 type Broker struct {
 	Name     string  `json:"name"`
-	Age      int64     `json:"age"` // ✅ Changed to int for correct data type
+	Age      int64   `json:"age"` // ✅ Changed to int for correct data type
 	Gender   string  `json:"gender"`
 	UserName string  `json:"user_name"`
 	Email    string  `json:"email"`
@@ -51,16 +51,16 @@ type Stock struct {
 
 // Holding struct
 type Holding struct {
-	ID       int64   `json:"id"`
-	BrokerID int64   `json:"broker_id"`
-	StockID  int64   `json:"stock_id"`
-	Quantity int     `json:"quantity"`
-	AvgPrice float64 `json:"avg_price"`
+	ID          int64   `json:"id"`
+	BrokerID    int64   `json:"broker_id"`
+	StockID     int64   `json:"stock_id"`
+	Quantity    int64   `json:"quantity"`
+	AvgPrice    float64 `json:"avg_price"`
+	BuyingPrice float64 `json:"buying_price"`
 }
 
-
 // ------------------------------------------------------------------------------------------------------------------------------------
-// for the api 
+// for the api
 type Company struct {
 	CompanyTab CompanyTab `json:"companyTab"`
 }

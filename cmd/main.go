@@ -43,7 +43,8 @@ func main() {
 	r.POST("/broker", handlers.InsertBroker)
 	r.GET("/broker/:id", handlers.GetBroker)
 	r.POST("/order/excute_order", handlers.ExcuteOrder)
-	//r.GET("/broker/:id/dashboard",handlers.BrokerFinance)
+	r.GET("/broker/:id/stocks", handlers.GetBrokerHolding)
+	r.POST("/broker/:id/stocks", handlers.InsertHolding)
 	// r.GET("/broker/:id/transactions",handlers.BrokerTransactoins)
 	// r.GET("/broker/:id/orders",handlers.BrokerOrders)
 	// Start Server
