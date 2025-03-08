@@ -2,7 +2,9 @@ package datastore_repo
 
 import (
 	"context"
+	"errors"
 	"log"
+	"time"
 
 	"cloud.google.com/go/datastore"
 )
@@ -45,12 +47,18 @@ type Stock struct {
 
 // Holding struct
 type Holding struct {
-	ID          *datastore.Key `datastore:"__key__"` // Auto-generated key
-	BrokerID    int64          `datastore:"broker_id"`
-	StockID     int64          `datastore:"stock_id"`
-	Quantity    int64          `datastore:"quantity"`
-	AvgPrice    float64        `datastore:"avg_price,noindex"`
-	BuyingPrice float64        `datastore:"BuyingPrice"`
+	ID              *datastore.Key `datastore:"__key__"` // Auto-generated key
+	BrokerID        int64          `datastore:"broker_id"`
+	StockSymbol     string         `datastore:"stock_symbol"` // Replacing StockID with StockSymbol
+	Quantity        int64          `datastore:"quantity"`
+	BuyingPrice     float64        `datastore:"buying_price,noindex"`
+	CurrentPrice    float64        `datastore:"current_price"`
+	CompanyName     string         `datastore:"company_name"`             // title
+	TotalInvestment float64        `datastore:"total_investment,noindex"` // AvgPrice * Quantity
+	CurrentValue    float64        `datastore:"current_value,noindex"`    // Market price * Quantity
+	Profit          float64        `datastore:"profit,noindex"`           // CurrentValue - TotalInvestment
+	ProfitPercent   float64        `datastore:"profit_percent"`
+	LastUpdated     time.Time      `datastore:"last_updated"` // Timestamp for tracking
 }
 
 // StockEntry struct
@@ -94,17 +102,32 @@ func GetBrokerHoldings(id int64) (*[]Holding, error) {
 		log.Printf("Failed to fetch stocks for broker: %v", err)
 		return nil, err
 	}
-
 	return &holdings, nil
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------
+
 func InsertBrokerHolding(holding *Holding) error {
 	ctx := context.Background()
 	key := datastore.IncompleteKey("Holding", nil)
-	_, err := DSClient.Put(ctx, key, holding)
+	_, err := DSClient.Put(ctx, key, &holding)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+// ------------------------------------------------------------------------------------------------------------------------------------
+func CheckBrokerStock(symbol string) error {
+	ctx := context.Background()
+	var holdings *[]Holding
+
+	query := datastore.NewQuery("holding").FilterField("stock_symbol", "=", symbol)
+	if _, err := DSClient.GetAll(ctx, query, holdings); err != nil {
+		return err
+	}
+	if holdings == nil || len(*holdings) != 0 {
+		return errors.New("there is already stock hold")
 	}
 	return nil
 }

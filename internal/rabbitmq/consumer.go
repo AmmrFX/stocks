@@ -47,7 +47,7 @@ func ConsumeOrders() {
 			log.Printf("Processing order: %+v\n", order)
 
 			// Process order in business logic
-			types.ExecuteTrade(order)
+		//	types.ExecuteTrade(order)
 		}
 	}()
 

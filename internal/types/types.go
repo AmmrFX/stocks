@@ -1,5 +1,7 @@
 package types
 
+import "time"
+
 type App struct {
 	ROOT                string
 	HostURL             string
@@ -43,20 +45,44 @@ type Broker struct {
 
 // Stock struct
 type Stock struct {
-	ID          int64   `json:"id"`
-	Symbol      string  `json:"symbol"`
-	CompanyName string  `json:"company_name"`
-	LatestPrice float64 `json:"latest_price"`
+	ID          int64         `json:"id"`
+	Symbol      string        `json:"symbol"`       // stock
+	CompanyName string        `json:"company_name"` // title
+	Market      string        `json:"market"`       // egx
+	Index       int           `json:"index"`        // don know
+	PriceBar    StockPriceBar `json:"priceBar"`
+}
+
+type StockPriceBar struct {
+	Value            string `json:"value"`
+	Change           string `json:"change"`
+	ChangePercentage string `json:"changePercentage"`
+	Open             string `json:"open"`
+	Close            string `json:"close"`
+	High             string `json:"high"`
+	Low              string `json:"low"`
+	HistoricalHigh   string `json:"historicalHigh"`
+	HistoricalLow    string `json:"historicalLow"`
+	Volume           string `json:"volume"`
+	Turnover         string `json:"turnover"`
+	Status           string `json:"status"`
+	UpdatedAt        string `json:"updatedAt"`
+	Currency         string `json:"currency"`
 }
 
 // Holding struct
 type Holding struct {
-	ID          int64   `json:"id"`
-	BrokerID    int64   `json:"broker_id"`
-	StockID     int64   `json:"stock_id"`
-	Quantity    int64   `json:"quantity"`
-	AvgPrice    float64 `json:"avg_price"`
-	BuyingPrice float64 `json:"buying_price"`
+	BrokerID        int64     `json:"broker_id"`
+	StockSymbol     string    `json:"stock_symbol"` // Replacing StockID with StockSymbol
+	Quantity        int64     `json:"quantity"`
+	BuyingPrice     float64   `json:"buying_price"`
+	CurrentPrice    float64   `json:"current_price"`
+	CompanyName     string    `json:"company_name"` // title
+	TotalInvestment float64   `json:"total_investment"`
+	CurrentValue    float64   `json:"current_value"`
+	Profit          float64   `json:"profit"`
+	ProfitPercent   float64   `json:"profit_percent"`
+	LastUpdated     time.Time `json:"last_updated"`
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------

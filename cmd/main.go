@@ -3,21 +3,13 @@ package main
 import (
 	datastore_repo "finance/datastore"
 	"finance/handlers"
+	"finance/internal/utils"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gregdel/pushover"
 	"github.com/joho/godotenv"
-)
-
-var (
-	pushoverAPIKey  string
-	pushoverUserKey string
-	HostURL         string
-	STOCKS_URL      string
-	COMPANY         string
 )
 
 func init() {
@@ -25,12 +17,12 @@ func init() {
 		fmt.Println(err)
 	}
 	os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-	pushoverAPIKey = os.Getenv("PUSHOVER_API_KEY")
-	pushoverUserKey = os.Getenv("PUSHOVER_USER_KEY")
-	HostURL = os.Getenv("HOST_URL")
-	STOCKS_URL = os.Getenv("STOCK")
-	COMPANY = os.Getenv("Mobco")
-	STOCKS_URL += COMPANY
+	// pushoverAPIKey = os.Getenv("PUSHOVER_API_KEY")
+	// pushoverUserKey = os.Getenv("PUSHOVER_USER_KEY")
+	utils.HostURL = os.Getenv("HOST_URL")
+	utils.STOCKS_URL = os.Getenv("STOCK")
+	utils.COMPANY = os.Getenv("Mobco")
+	// utils.STOCKS_URL += utils.COMPANY
 }
 
 func main() {
@@ -99,20 +91,20 @@ func main() {
 // 	}
 // }
 
-func pushover2(message1 string) error {
-	app := pushover.New(pushoverAPIKey)
-	recipient := pushover.NewRecipient(pushoverUserKey)
+// func pushover2(message1 string) error {
+// 	app := pushover.New(pushoverAPIKey)
+// 	recipient := pushover.NewRecipient(pushoverUserKey)
 
-	message := &pushover.Message{
-		Message: message1,
-	}
+// 	message := &pushover.Message{
+// 		Message: message1,
+// 	}
 
-	_, err := app.SendMessage(message, recipient)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// 	_, err := app.SendMessage(message, recipient)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 // stocks := []string{"abou-kir-fertilizers"}
 // scrapeURL := "https://sa.investing.com/equities/"
