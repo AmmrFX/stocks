@@ -45,9 +45,9 @@ func GetBrokerHolding(c *gin.Context) {
 
 // ------------------------------------------------------------------------------------------------------------------------------------
 func InsertHolding(c *gin.Context) {
-	var holding *types.Holding
+	var holdings *[]types.Holding
 
-	if err := c.ShouldBindJSON(&holding); err != nil { // Get the request and bind it to the types holding.
+	if err := c.ShouldBindJSON(&holdings); err != nil { // Get the request and bind it to the types holding.
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
@@ -63,43 +63,73 @@ func InsertHolding(c *gin.Context) {
 		return
 	}
 
-	// Check that this stock isn't already added
-	//  if its already added it must update the value of quantity
-	//  but with excuting orders or we can add same stock but with differnt quantity and buying price.
-	if err := ds.CheckBrokerStock(holding.StockSymbol); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("stock is already hold by you: %v", err)})
-		return
+	var dsHoldings []ds.Holding
+	var failedStocks []string
+	var successedStocks []string
+
+	for _, holding := range *holdings {
+
+		// Check that this stock isn't already added
+		//  if its already added it must update the value of quantity
+		//  but with excuting orders or we can add same stock but with differnt quantity and buying price.
+		if err := ds.CheckBrokerStock(holding.StockSymbol); err != nil {
+			failedStocks = append(failedStocks, fmt.Sprintf("%s (already held)", holding.StockSymbol))
+			continue
+		}
+
+		// valid all input
+
+		// get all all the info stocks holding by this broker but view only some of our need.
+		stockInfo, err := utils.GetHoldingStocksInfo(holding.StockSymbol)
+		if err != nil {
+			failedStocks = append(failedStocks, fmt.Sprintf("%s (stock info error: %v)", holding.StockSymbol, err))
+			continue
+		}
+
+		holding.CompanyName = stockInfo.CompanyName
+		holding.CurrentPrice = stockInfo.CurrentPrice
+
+		holding.TotalInvestment = utils.CalculateTotalInvestment(holding.BuyingPrice, holding.Quantity)
+		holding.CurrentValue = utils.GetStockCurrentValue(holding.Quantity, holding.CurrentPrice)
+		holding.Profit = utils.CalculateProfit(holding.TotalInvestment, holding.Quantity, holding.CurrentValue)
+		holding.ProfitPercent = utils.CalculateProfitPercent(holding.Profit, holding.TotalInvestment)
+
+		dsHoldings = append(dsHoldings, ds.Holding{
+			BrokerID:        brokerID,
+			StockSymbol:     holding.StockSymbol,
+			Quantity:        holding.Quantity,
+			BuyingPrice:     holding.BuyingPrice,
+			CurrentValue:    holding.CurrentValue,
+			TotalInvestment: holding.TotalInvestment,
+			Profit:          holding.Profit,
+			ProfitPercent:   holding.ProfitPercent,
+			CurrentPrice:    holding.CurrentPrice,
+			CompanyName:     holding.CompanyName,
+			LastUpdated:     time.Now(),
+		})
+		successedStocks = append(successedStocks, fmt.Sprintf("%s (stock inserted successfully:)", holding.StockSymbol))
 	}
 
 	// valid all input
 
-	// get all all the info stocks holding by this broker but view only some of our need.
-	if holding, err = utils.GetHoldingStocksInfo(holding.StockSymbol); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("can't get stock info: %v", err)})
+	// Insert only valid holdings
+	if len(dsHoldings) > 0 {
+		if err := ds.InsertBrokerHoldings(dsHoldings); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to insert holdings: %v", err)})
+			return
+		}
+
+	}
+
+	// Return response based on success/failures
+	if len(successedStocks) > 0 {
+		c.JSON(http.StatusPartialContent, gin.H{
+			"success":       successedStocks,
+			"failed_stocks": failedStocks,
+		})
 		return
 	}
+	
 
-	holding.TotalInvestment = utils.CalculateTotalInvestment(holding.BuyingPrice, holding.Quantity)
-	holding.CurrentValue = utils.GetStockCurrentValue(holding.Quantity, holding.CurrentPrice)
-	holding.Profit = utils.CalculateProfit(holding.TotalInvestment, holding.Quantity, holding.CurrentValue)
-	holding.ProfitPercent = utils.CalculateProfitPercent(holding.Profit, holding.TotalInvestment)
-
-	dsholding := ds.Holding{
-		StockSymbol:     holding.StockSymbol,
-		Quantity:        holding.Quantity,
-		BuyingPrice:     holding.BuyingPrice,
-		CurrentValue:    holding.CurrentValue,
-		TotalInvestment: holding.TotalInvestment,
-		Profit:          holding.Profit,
-		ProfitPercent:   holding.ProfitPercent,
-		CompanyName:     holding.CompanyName,
-		LastUpdated:     time.Now(),
-	}
-
-	if err := ds.InsertBrokerHolding(&dsholding); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to insert broker holding: %v", err)})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"success": "broker holding inserted successfully!"})
+	c.JSON(http.StatusExpectationFailed, gin.H{"error": "all stocks wasn't inserted!"})
 }

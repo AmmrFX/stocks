@@ -93,7 +93,7 @@ func InsertBroker(broker *Broker) error {
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------
-func GetBrokerHoldings(id int64) (*[]Holding, error) {
+func GetBrokerHoldings(id int64) ([]Holding, error) {
 	var holdings []Holding
 	ctx := context.Background()
 	query := datastore.NewQuery("Holding").FilterField("broker_id", "=", id)
@@ -102,15 +102,18 @@ func GetBrokerHoldings(id int64) (*[]Holding, error) {
 		log.Printf("Failed to fetch stocks for broker: %v", err)
 		return nil, err
 	}
-	return &holdings, nil
+	return holdings, nil
 }
 
 // ------------------------------------------------------------------------------------------------------------------------------------
 
-func InsertBrokerHolding(holding *Holding) error {
+func InsertBrokerHoldings(holdings []Holding) error {
 	ctx := context.Background()
-	key := datastore.IncompleteKey("Holding", nil)
-	_, err := DSClient.Put(ctx, key, &holding)
+	key := make([]*datastore.Key, len(holdings))
+	for i := range holdings {
+		key[i] = datastore.IncompleteKey("Holding", nil)
+	}
+	_, err := DSClient.PutMulti(ctx, key, holdings)
 	if err != nil {
 		return err
 	}
@@ -120,14 +123,20 @@ func InsertBrokerHolding(holding *Holding) error {
 // ------------------------------------------------------------------------------------------------------------------------------------
 func CheckBrokerStock(symbol string) error {
 	ctx := context.Background()
-	var holdings *[]Holding
+	var holdings []Holding
 
-	query := datastore.NewQuery("holding").FilterField("stock_symbol", "=", symbol)
-	if _, err := DSClient.GetAll(ctx, query, holdings); err != nil {
-		return err
+	query := datastore.NewQuery("Holding").FilterField("stock_symbol", "=", symbol)
+	_, err := DSClient.GetAll(ctx, query, &holdings)
+	if err != nil {
+		log.Printf("Datastore Query Error: %v", err)
+	} else if len(holdings) == 0 {
+		log.Println("No holdings found in Datastore!")
+	} else {
+		log.Printf("Found %d holdings: %+v", len(holdings), holdings)
 	}
-	if holdings == nil || len(*holdings) != 0 {
+	if len(holdings) != 0 {
 		return errors.New("there is already stock hold")
+
 	}
 	return nil
 }

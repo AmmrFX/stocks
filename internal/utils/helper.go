@@ -11,9 +11,9 @@ import (
 var (
 	// pushoverAPIKey  string
 	// pushoverUserKey string
-	HostURL         string
-	STOCKS_URL      string
-	COMPANY         string
+	HostURL    string
+	STOCKS_URL string
+	COMPANY    string
 )
 
 // ------------------------------------------------------------------------------------------------------------------------------------
@@ -102,7 +102,7 @@ func GetStockCurrentValue(quantity int64, currentPrice float64) float64 {
 // ------------------------------------------------------------------------------------------------------------------------------------
 func GetHoldingStocksInfo(stockSymbol string) (*types.Holding, error) {
 	//message, lastperc, err := main.StockHandler(HostURL, STOCKS_URL, COMPANY, lastPercent)
-	var holdingStock types.Holding
+	var holdingStock *types.Holding
 
 	stock, err := GetStockBySymbol(stockSymbol)
 	if err != nil {
@@ -115,11 +115,11 @@ func GetHoldingStocksInfo(stockSymbol string) (*types.Holding, error) {
 		return nil, err
 	}
 
-	holdingStock = types.Holding{
+	holdingStock = &types.Holding{
 		CurrentPrice: currentPrice,
 		CompanyName:  stock.CompanyName,
 	}
-	return &holdingStock, nil
+	return holdingStock, nil
 
 }
 
@@ -128,7 +128,7 @@ func GetStockBySymbol(stockSymbol string) (*types.Stock, error) {
 	companyStock := &types.Company{}
 	var stock *types.Stock
 
-	resp, err := http.Get(HostURL + stockSymbol)
+	resp, err := http.Get(HostURL + STOCKS_URL + stockSymbol)
 	if err != nil {
 		return nil, err
 	}
@@ -141,10 +141,11 @@ func GetStockBySymbol(stockSymbol string) (*types.Stock, error) {
 	defer resp.Body.Close()
 
 	stock = &types.Stock{
-		Symbol:   companyStock.CompanyTab.Stock,
-		Market:   companyStock.CompanyTab.Market,
-		Index:    companyStock.CompanyTab.Index,
-		PriceBar: types.StockPriceBar(companyStock.CompanyTab.PriceBar),
+		Symbol:      companyStock.CompanyTab.Stock,
+		Market:      companyStock.CompanyTab.Market,
+		Index:       companyStock.CompanyTab.Index,
+		CompanyName: companyStock.CompanyTab.Title,
+		PriceBar:    types.StockPriceBar(companyStock.CompanyTab.PriceBar),
 	}
 
 	return stock, nil
